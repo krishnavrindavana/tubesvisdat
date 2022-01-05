@@ -10,8 +10,8 @@ from bokeh.models.widgets import TableColumn, DataTable, Tabs
 import math
 
 
-df_province = pd.read_csv('./data/province.csv', index_col=0)
-df_cases = pd.read_csv('./data/cases.csv')
+df_province = pd.read_csv('./data/province.csv', index_col=0, encoding='windows-1252')
+df_cases = pd.read_csv('./data/cases.csv', encoding='windows-1252')
 
 df_province['province_name'] = df_province['province_name'].str[1:]
 df_province = df_province[:-1]
