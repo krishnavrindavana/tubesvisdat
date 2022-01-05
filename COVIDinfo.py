@@ -1,17 +1,17 @@
-from bokeh.models.annotations import Title
+# Tugas Besar Visualisasi Data Kelompok 4 Kelas IF-42-GAB06
+# Sumber data: https://www.kaggle.com/ardisragen/indonesia-coronavirus-cases/version/39
+# Dataset yang digunakan adalah 'province.csv' dan 'cases.csv'
+
 import pandas as pd
-import numpy as np
-from bokeh.io import output_notebook, output_file, curdoc
-from bokeh.plotting import figure, show, reset_output, output_file
-from bokeh.models import ColumnDataSource, CDSView, HoverTool, Panel, Column
-from bokeh.models.widgets import TableColumn, DataTable, Tabs, CheckboxGroup
-from bokeh.layouts import row
+from bokeh.io import curdoc
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, HoverTool, Panel
+from bokeh.models.widgets import TableColumn, DataTable, Tabs
 import math
-import itertools
 
 
-df_province = pd.read_csv('./data/province.csv', index_col=0, encoding='windows-1252')
-df_cases = pd.read_csv('./data/cases.csv',encoding='windows-1252')
+df_province = pd.read_csv('./data/province.csv', index_col=0)
+df_cases = pd.read_csv('./data/cases.csv')
 
 df_province['province_name'] = df_province['province_name'].str[1:]
 df_province = df_province[:-1]
@@ -50,8 +50,6 @@ tab2 = Panel(child=table, title='Summary Kasus Positif Tiap Pulau')
 
 # Tab 3: line & bar plot jumlah kasus per hari
 
-reset_output()
-output_notebook()
 cases_cds = ColumnDataSource(df_cases)
 
 fig_line = figure(plot_height=600, plot_width=800,
@@ -184,69 +182,8 @@ fig_scatter.add_tools(HoverTool(tooltips=tooltips))
 tab4 = Panel(child=fig_scatter, title='Populasi Per KM Persegi & Kasus Terkonfirmasi')
 
 
-# Tab 5: bar plot jumlah kasus per provinsi
+# Menggabungkan semua tab yang sudah dibuat
 
-def make_dataset(to_plot):
-    df_new = pd.DataFrame(columns=['province_name',
-                                   'island',
-                                   'iso_code',
-                                   'capital_city',
-                                   'population',
-                                   'population_kmsquare',
-                                   'confirmed',
-                                   'deceased',
-                                   'released',
-                                   'longitude',
-                                   'latitude'])
-    prov_names = list()
-    for i, name in enumerate(to_plot):
-        one_row = df_province[df_province['province_name']==name]
-        df_new = df_new.append(one_row, ignore_index=True)
-        prov_names.append(name)
-    return ColumnDataSource(df_new), prov_names
-        
-def make_plot(src, prov_names, color):
-    fig = figure(title='Informasi Tiap Provinsi')
-    for prov in prov_names:
-        fig.vbar(x='confirmed', top=prov,
-                 width=0.8,
-                 alpha=0.3,
-                 fill_color=color,
-                 legend_label=prov,
-                 source=src)
-    return fig
-
-def update(attr, old, new):
-    to_plot = [province_selection.labels[i] for i in province_selection.active]
-    new_src = make_dataset(to_plot)
-    src.data.update(new_src.data)
-
-colors = itertools.cycle(["indianred",
-                          "mediumseagreen",
-                          "orange",
-                          "mediumpurple",
-                          "coral",
-                          "turquoise",
-                          "gold",
-                          "navy",
-                          "chocolate",
-                          "darkslategrey",
-                          "yellowgreen",
-                          "orchid"])
-    
-province_list = list(set(df_province['province_name']))
-province_list.sort()
-province_selection = CheckboxGroup(labels=province_list, active=[0, 1])
-province_selection.on_change('active', update)
-
-init = [province_selection.labels[i] for i in province_selection.active]
-src, prov_names = make_dataset(init)
-p = make_plot(src, prov_names, next(colors))
-
-layout = row(province_selection, p)
-tab5 = Panel(child=layout, title='Bar Plot Jumlah Per Provinsi')
-
-
-tabs = Tabs(tabs=[tab1, tab2, tab3, tab4, tab5])
+tabs = Tabs(tabs=[tab1, tab2, tab3, tab4])
 
 curdoc().add_root(tabs)
